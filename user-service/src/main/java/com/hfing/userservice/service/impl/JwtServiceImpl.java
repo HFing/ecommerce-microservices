@@ -1,0 +1,84 @@
+package com.hfing.userservice.service.impl;
+
+import com.hfing.userservice.common.TokenType;
+import com.hfing.userservice.exception.ErrorCode;
+import com.hfing.userservice.exception.UserServiceException;
+import com.hfing.userservice.service.JwtService;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jwt.JWTClaimsSet;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.Set;
+import java.util.UUID;
+import static com.hfing.userservice.constant.JWTConstant.*;
+@Service
+public class JwtServiceImpl implements JwtService {
+    @Value("${jwt.secret-key}")
+    private String secretKey;
+
+    @Override
+    public String generateAccessToken(String userId, Set<String> roles) {
+        // Header
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+
+        Date issueTime = new Date();
+        Date expiredTime = new Date(Instant.now().plus(2, ChronoUnit.HOURS).toEpochMilli());
+        String jwtId = UUID.randomUUID().toString();
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(userId)
+                .issuer(JWT_ISSUER)
+                .claim(ROLES, roles)
+                .issueTime(issueTime)
+                .expirationTime(expiredTime)
+                .jwtID(jwtId)
+                .claim(TOKEN_TYPE, TokenType.ACCESS_TOKEN)
+                .build();
+
+        // Payload
+        Payload payload = new Payload(claimsSet.toJSONObject());
+
+        // Signature
+        JWSObject jwsObject = new JWSObject(header, payload);
+        try {
+            jwsObject.sign(new MACSigner(secretKey));
+        } catch (JOSEException e) {
+            throw new UserServiceException(ErrorCode.TOKEN_GENERATION_FAILED);
+        }
+        return jwsObject.serialize();
+    }
+
+    @Override
+    public String generateRefreshToken(String userId) {
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+
+        Date issueTime = new Date();
+        Date expiredTime = new Date(Instant.now().plus(14, ChronoUnit.DAYS).toEpochMilli());
+        String jwtId = UUID.randomUUID().toString();
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(userId)
+                .issuer(JWT_ISSUER)
+                .issueTime(issueTime)
+                .expirationTime(expiredTime)
+                .claim(TOKEN_TYPE, TokenType.REFRESH_TOKEN)
+                .jwtID(jwtId)
+                .build();
+
+        // Payload
+        Payload payload = new Payload(claimsSet.toJSONObject());
+
+        // Signature
+        JWSObject jwsObject = new JWSObject(header, payload);
+        try {
+            jwsObject.sign(new MACSigner(secretKey));
+        } catch (JOSEException e) {
+            throw new UserServiceException(ErrorCode.TOKEN_GENERATION_FAILED);
+        }
+        return jwsObject.serialize();
+    }
+}
