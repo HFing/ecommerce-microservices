@@ -4,12 +4,15 @@ import com.hfing.userservice.dto.request.LoginRequest;
 import com.hfing.userservice.dto.response.ApiResponse;
 import com.hfing.userservice.dto.response.LoginResponse;
 import com.hfing.userservice.service.AuthenticationService;
+import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.text.ParseException;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,4 +54,29 @@ public class AuthenticationController {
                 .data(data)
                 .build();
     }
+
+    @PostMapping("/logout")
+    ApiResponse<Void> logout(
+            @CookieValue("refresh_token") String refreshToken,
+            HttpServletResponse response
+    ) throws ParseException, JOSEException {
+        // 1. Gọi service để thu hồi tokens
+        authenticationService.logout(refreshToken);
+
+        // 2. Xóa refresh token cookie
+        // Set value = "" và maxAge = 0 để browser xóa cookie
+        Cookie cookie = new Cookie("refresh_token", "");
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setMaxAge(0); // Xóa cookie ngay lập tức
+
+        response.addCookie(cookie);
+
+        return ApiResponse.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message("Logout successful")
+                .build();
+    }
+
 }

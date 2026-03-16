@@ -1,13 +1,16 @@
 package com.hfing.userservice.service.impl;
 
+import com.hfing.userservice.dto.TokenDetails;
 import com.hfing.userservice.dto.request.LoginRequest;
 import com.hfing.userservice.dto.response.LoginResponse;
+import com.hfing.userservice.entity.RedisToken;
 import com.hfing.userservice.entity.User;
 import com.hfing.userservice.exception.ErrorCode;
 import com.hfing.userservice.exception.UserServiceException;
 import com.hfing.userservice.repository.UserRepository;
 import com.hfing.userservice.service.AuthenticationService;
 import com.hfing.userservice.service.JwtService;
+import com.hfing.userservice.service.RedisTokenService;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +19,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,6 +37,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final RedisTokenService redisTokenService;
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -48,11 +56,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .collect(Collectors.toSet());
 
         String accessToken = jwtService.generateAccessToken(user.getId(), roles);
-        String refreshToken = jwtService.generateRefreshToken(user.getId());
+        TokenDetails refreshToken = jwtService.generateRefreshToken(user.getId());
+
+        RedisToken redisToken = RedisToken.builder()
+                .jwtId(refreshToken.jwtId())      // UUID của token
+                .userId(user.getId())              // User ID để query sau này
+                .expiration(refreshToken.ttlSeconds()) // TTL = 14 ngày
+                .build();
+
+        redisTokenService.saveToken(redisToken);
+
+
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(refreshToken.value())
                 .roles(roles)
                 .build();
     }
@@ -84,6 +102,62 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
+    @Override
+    public void logout(String refreshToken) throws ParseException, JOSEException {
+        // 1. Validate refresh token có tồn tại không
+        if (refreshToken == null) {
+            throw new UserServiceException(ErrorCode.MISSING_LOGOUT_INFO);
+        }
+
+        // 2. Lấy thông tin user từ SecurityContext (từ access token)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication == null)
+            throw new UserServiceException(ErrorCode.TOKEN_INVALID);
+        String userId = authentication.getName();
+
+        // 3. Validate refresh token và lấy thông tin
+        SignedJWT signedRefreshToken = jwtService.validateToken(refreshToken);
+
+        String refreshUserId = signedRefreshToken.getJWTClaimsSet().getSubject();
+        String refreshJwtId = signedRefreshToken.getJWTClaimsSet().getJWTID();
+
+        // 4. Verify userId từ access token và refresh token phải giống nhau
+        // Tránh trường hợp user A dùng access token của mình + refresh token của user B
+        if (!userId.equals(refreshUserId)) {
+            throw new UserServiceException(ErrorCode.TOKEN_INVALID);
+        }
+
+        // 5. Xóa refresh token khỏi Redis
+        // Refresh token đã được lưu vào Redis khi login (Lesson 4.14)
+        redisTokenService.deleteTokenByJwtId(refreshJwtId);
+
+        // 6. Lấy thông tin access token từ SecurityContext
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        if(jwt == null)
+            throw new UserServiceException(ErrorCode.TOKEN_INVALID);
+
+        String accessJwtId = jwt.getId();
+        Instant accessExpiration = jwt.getExpiresAt();
+
+        // 7. Tính TTL còn lại của access token
+        // TTL = thời gian hết hạn - thời gian hiện tại
+        long ttl = ChronoUnit.SECONDS.between(
+                Instant.now(),
+                accessExpiration
+        );
+
+        // 8. Nếu access token còn hạn → lưu vào Redis blacklist
+        // Nếu đã hết hạn (ttl <= 0) → không cần lưu vì token đã invalid
+        if (ttl > 0) {
+            redisTokenService.saveToken(
+                    RedisToken.builder()
+                            .jwtId(accessJwtId)
+                            .userId(userId)
+                            .expiration(ttl)
+                            .build()
+            );
+        }
+    }
 
 
 }

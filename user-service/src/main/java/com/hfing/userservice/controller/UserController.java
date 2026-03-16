@@ -12,6 +12,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
@@ -36,6 +38,16 @@ public class UserController {
         return ApiResponse.<UserDetailResponse>builder()
                 .code(HttpStatus.OK.value())
                 .message("User info retrieved successfully")
+                .data(data)
+                .build();
+    }
+
+    @GetMapping
+    ApiResponse<List<UserDetailResponse>> getAllUsers() {
+        var data = userService.getAllUsers();
+        return ApiResponse.<List<UserDetailResponse>>builder()
+                .code(HttpStatus.OK.value())
+                .message("Users retrieved successfully")
                 .data(data)
                 .build();
     }

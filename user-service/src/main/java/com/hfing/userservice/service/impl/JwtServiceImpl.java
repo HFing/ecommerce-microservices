@@ -1,6 +1,7 @@
 package com.hfing.userservice.service.impl;
 
 import com.hfing.userservice.common.TokenType;
+import com.hfing.userservice.dto.TokenDetails;
 import com.hfing.userservice.exception.ErrorCode;
 import com.hfing.userservice.exception.UserServiceException;
 import com.hfing.userservice.service.JwtService;
@@ -57,11 +58,17 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateRefreshToken(String userId) {
+    public TokenDetails generateRefreshToken(String userId) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         Date issueTime = new Date();
         Date expiredTime = new Date(Instant.now().plus(14, ChronoUnit.DAYS).toEpochMilli());
+
+        // Tính TTL (Time To Live) tính bằng giây
+        // TTL = thời gian hết hạn - thời gian hiện tại
+        long ttlSeconds = ChronoUnit.SECONDS.between(Instant.now(), expiredTime.toInstant());
+
+        // Generate UUID cho jwtId
         String jwtId = UUID.randomUUID().toString();
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
@@ -70,20 +77,25 @@ public class JwtServiceImpl implements JwtService {
                 .issueTime(issueTime)
                 .expirationTime(expiredTime)
                 .claim(TOKEN_TYPE, TokenType.REFRESH_TOKEN)
-                .jwtID(jwtId)
+                .jwtID(jwtId) // Lưu jwtId vào claims
                 .build();
 
-        // Payload
         Payload payload = new Payload(claimsSet.toJSONObject());
 
-        // Signature
         JWSObject jwsObject = new JWSObject(header, payload);
         try {
             jwsObject.sign(new MACSigner(secretKey));
         } catch (JOSEException e) {
             throw new UserServiceException(ErrorCode.TOKEN_GENERATION_FAILED);
         }
-        return jwsObject.serialize();
+        String token = jwsObject.serialize();
+
+        // Return TokenDetails với đầy đủ thông tin
+        return TokenDetails.builder()
+                .value(token)        // Token string
+                .jwtId(jwtId)        // UUID để lưu vào Redis
+                .ttlSeconds(ttlSeconds) // TTL để set expiration trong Redis
+                .build();
     }
 
     @Override

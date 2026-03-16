@@ -13,6 +13,10 @@ spring:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 jwt:
   secret-key: dPTdwrAE28umMn0kuEpmi90I6WP4nXJDv/XQFvq+0v62zloA80nHfPwN5n1ejDdUqS762XGfdgOo7ig7InaocQ==
