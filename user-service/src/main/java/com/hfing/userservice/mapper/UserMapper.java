@@ -2,10 +2,12 @@ package com.hfing.userservice.mapper;
 
 import com.hfing.userservice.dto.request.CreateUserRequest;
 import com.hfing.userservice.dto.response.CreateUserResponse;
+import com.hfing.userservice.dto.response.UserDetailResponse;
 import com.hfing.userservice.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
@@ -14,4 +16,6 @@ public interface UserMapper {
     User toUser(CreateUserRequest request);
 
     CreateUserResponse toCreateUserResponse(User user);
+
+    UserDetailResponse toUserDetailResponse(User user);
 }

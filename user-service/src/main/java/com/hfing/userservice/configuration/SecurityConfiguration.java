@@ -21,10 +21,12 @@ public class SecurityConfiguration {
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/v1/users",
-            "/api/v1/auth/login"
+            "/api/v1/auth/login",
+            "/api/v1/auth/refresh-token",
     };
 
     private final CustomUserDetailService userDetailService;
+    private final CustomJwtDecoder jwtDecoder;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -37,6 +39,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecoder)))
                 .build();
     }
 

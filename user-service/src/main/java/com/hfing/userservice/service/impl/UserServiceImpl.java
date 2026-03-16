@@ -3,6 +3,7 @@ package com.hfing.userservice.service.impl;
 import com.hfing.userservice.common.RoleType;
 import com.hfing.userservice.dto.request.CreateUserRequest;
 import com.hfing.userservice.dto.response.CreateUserResponse;
+import com.hfing.userservice.dto.response.UserDetailResponse;
 import com.hfing.userservice.entity.Role;
 import com.hfing.userservice.entity.User;
 import com.hfing.userservice.exception.ErrorCode;
@@ -41,6 +42,14 @@ public class UserServiceImpl implements UserService {
             throw new UserServiceException(ErrorCode.USER_ALREADY_EXISTS);
         }
         return userMapper.toCreateUserResponse(user);
+    }
+
+    @Override
+    public UserDetailResponse myInfo(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserServiceException(ErrorCode.USER_NOT_FOUND));
+
+        return userMapper.toUserDetailResponse(user);
     }
 
 

@@ -5,4 +5,5 @@ import com.hfing.userservice.dto.response.LoginResponse;
 
 public interface AuthenticationService {
     LoginResponse login(LoginRequest request);
+    LoginResponse refreshToken(String refreshToken);
 }
