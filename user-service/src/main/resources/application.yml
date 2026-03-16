@@ -20,3 +20,11 @@ spring:
 
 jwt:
   secret-key: dPTdwrAE28umMn0kuEpmi90I6WP4nXJDv/XQFvq+0v62zloA80nHfPwN5n1ejDdUqS762XGfdgOo7ig7InaocQ==
+
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
