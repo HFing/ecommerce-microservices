@@ -18,8 +18,8 @@ public class CustomJwtDecoder implements JwtDecoder {
                     token,
                     signedJWT.getJWTClaimsSet().getIssueTime().toInstant(),
                     signedJWT.getJWTClaimsSet().getExpirationTime().toInstant(),
-                    signedJWT.getJWTClaimsSet().toJSONObject(),
-                    signedJWT.getHeader().toJSONObject()
+                    signedJWT.getHeader().toJSONObject(),
+                    signedJWT.getJWTClaimsSet().toJSONObject()
             );
         } catch (ParseException e) {
             throw new RuntimeException(e);

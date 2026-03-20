@@ -14,6 +14,9 @@ public enum ErrorCode {
 
     CATEGORY_EXISTED(400, "Category already existed", HttpStatus.BAD_REQUEST),
     CATEGORY_NOT_FOUND(404, "Category not found", HttpStatus.NOT_FOUND),
+    PRODUCT_NOT_FOUND(404, "Product not found", HttpStatus.NOT_FOUND),
+    PRODUCT_ACCESS_DENIED(403, "You do not have permission to access this product", HttpStatus.FORBIDDEN),
+
 
     ;
 

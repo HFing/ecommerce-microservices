@@ -25,7 +25,9 @@ public class SecurityConfiguration {
     };
 
     private static final String[] PUBLIC_GET_ENDPOINTS = {
-            "/api/v1/categories"
+            "/api/v1/categories",
+            "/api/v1/products",
+            "/api/v1/products/{id}",
     };
 
     private final CustomJwtDecoder jwtDecoder;
