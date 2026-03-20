@@ -1,8 +1,10 @@
 package com.hfing.productservice.service.impl;
 
 import com.hfing.productservice.dto.request.CreateProductRequest;
+import com.hfing.productservice.dto.request.SearchRequest;
 import com.hfing.productservice.dto.response.CreateProductResponse;
 import com.hfing.productservice.dto.response.ProductDetailResponse;
+import com.hfing.productservice.repository.specification.ProductSpecification;
 import com.hfing.productservice.entity.Category;
 import com.hfing.productservice.entity.Product;
 import com.hfing.productservice.exception.ErrorCode;
@@ -12,6 +14,7 @@ import com.hfing.productservice.repository.ProductRepository;
 import com.hfing.productservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -63,8 +66,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDetailResponse> getAllProducts() {
-        return productRepository.findAll()
+    public List<ProductDetailResponse> getAllProducts(SearchRequest request) {
+
+        Specification<Product> specification = Specification.allOf(
+                ProductSpecification.hasName(request.name()),
+                ProductSpecification.hasPrice(request.minPrice(), request.maxPrice()),
+                ProductSpecification.hasStatus(request.status()),
+                ProductSpecification.inStock(request.inStock()),
+                ProductSpecification.hasCategory(request.categoryId())
+        );
+
+        return productRepository.findAll(specification)
                 .stream()
                 .map(product -> ProductDetailResponse.builder()
                         .id(product.getId())

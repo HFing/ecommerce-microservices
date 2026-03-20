@@ -1,6 +1,7 @@
 package com.hfing.productservice.controller;
 
 import com.hfing.productservice.dto.request.CreateProductRequest;
+import com.hfing.productservice.dto.request.SearchRequest;
 import com.hfing.productservice.dto.response.ApiResponse;
 import com.hfing.productservice.dto.response.CreateProductResponse;
 import com.hfing.productservice.dto.response.ProductDetailResponse;
@@ -32,14 +33,15 @@ public class ProductController {
     }
 
     @GetMapping
-    ApiResponse<List<ProductDetailResponse>> getProducts() {
-        var data = productService.getAllProducts();
+    ApiResponse<List<ProductDetailResponse>> getProducts(SearchRequest request) {
+        var data = productService.getAllProducts(request);
         return ApiResponse.<List<ProductDetailResponse>>builder()
                 .code(HttpStatus.OK.value())
                 .message("Products retrieved successfully")
                 .data(data)
                 .build();
     }
+
 
     @GetMapping("/{id}")
     ApiResponse<ProductDetailResponse> getProductById(@PathVariable String id) {

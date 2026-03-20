@@ -1,4 +1,4 @@
-package com.hfing.productservice.dto.response.specification;
+package com.hfing.productservice.repository.specification;
 
 import com.hfing.productservice.common.ProductStatus;
 import com.hfing.productservice.entity.Category;
