@@ -1,0 +1,28 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: search-service
+
+  kafka:
+    bootstrap-servers: localhost:9094
+    consumer:
+      group-id: search-service-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+elasticsearch:
+  server-url: http://localhost:9200
+  api-key: czkyd0M1MEJWeElFTmlJQ1lHWU46cEtmVTY2WXFiLWItRkdSbU9zZ1JTQQ==
+
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
