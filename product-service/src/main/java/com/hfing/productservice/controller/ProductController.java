@@ -4,6 +4,7 @@ import com.hfing.productservice.dto.request.CreateProductRequest;
 import com.hfing.productservice.dto.request.SearchRequest;
 import com.hfing.productservice.dto.response.ApiResponse;
 import com.hfing.productservice.dto.response.CreateProductResponse;
+import com.hfing.productservice.dto.response.PageResponse;
 import com.hfing.productservice.dto.response.ProductDetailResponse;
 import com.hfing.productservice.service.ProductService;
 import jakarta.validation.Valid;
@@ -33,14 +34,18 @@ public class ProductController {
     }
 
     @GetMapping
-    ApiResponse<List<ProductDetailResponse>> getProducts(SearchRequest request) {
-        var data = productService.getAllProducts(request);
-        return ApiResponse.<List<ProductDetailResponse>>builder()
+    ApiResponse<PageResponse<ProductDetailResponse>> getProducts(
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "10") int size,
+            SearchRequest request) {
+        var data = productService.getAllProducts(page, size, request);
+        return ApiResponse.<PageResponse<ProductDetailResponse>>builder()
                 .code(HttpStatus.OK.value())
                 .message("Products retrieved successfully")
                 .data(data)
                 .build();
     }
+
 
 
     @GetMapping("/{id}")
