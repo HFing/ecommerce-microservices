@@ -1,7 +1,9 @@
 package com.hfing.userservice.service.impl;
 
 import com.hfing.userservice.dto.TokenDetails;
+import com.hfing.userservice.dto.request.IntrospectRequest;
 import com.hfing.userservice.dto.request.LoginRequest;
+import com.hfing.userservice.dto.response.IntrospectResponse;
 import com.hfing.userservice.dto.response.LoginResponse;
 import com.hfing.userservice.entity.RedisToken;
 import com.hfing.userservice.entity.User;
@@ -26,6 +28,8 @@ import org.springframework.stereotype.Service;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -158,6 +162,51 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             );
         }
     }
+
+
+    @Override
+    public IntrospectResponse introspectToken(IntrospectRequest request) {
+        try {
+            // 1. Validate token (verify signature và check expiration)
+            SignedJWT signedJWT = jwtService.validateToken(request.token());
+
+            // 2. Extract user ID từ token
+            String userId = signedJWT.getJWTClaimsSet().getSubject();
+
+            // 3. Extract roles từ token
+            Set<String> roles = extractRoles(signedJWT.getJWTClaimsSet().getClaim("roles"));
+
+            // 4. Return response với active=true
+            return IntrospectResponse.builder()
+                    .active(true)
+                    .userId(userId)
+                    .roles(roles)
+                    .build();
+
+        } catch (ParseException | JOSEException e) {
+            // Token không hợp lệ → return active=false
+            return IntrospectResponse.builder()
+                    .active(false)
+                    .build();
+        }
+    }
+
+    // Helper method để extract roles từ JWT claim
+    private Set<String> extractRoles(Object rolesClaim) {
+        if (rolesClaim == null) {
+            return Collections.emptySet();
+        }
+
+        // JWT library serialize array thành List (không phải Set)
+        if (rolesClaim instanceof Collection<?> collection) {
+            return collection.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toSet());
+        }
+
+        return Collections.emptySet();
+    }
+
 
 
 }

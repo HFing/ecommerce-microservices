@@ -1,7 +1,9 @@
 package com.hfing.userservice.controller;
 
+import com.hfing.userservice.dto.request.IntrospectRequest;
 import com.hfing.userservice.dto.request.LoginRequest;
 import com.hfing.userservice.dto.response.ApiResponse;
+import com.hfing.userservice.dto.response.IntrospectResponse;
 import com.hfing.userservice.dto.response.LoginResponse;
 import com.hfing.userservice.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
@@ -76,6 +78,16 @@ public class AuthenticationController {
         return ApiResponse.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message("Logout successful")
+                .build();
+    }
+
+    @PostMapping("/introspect")
+    ApiResponse<IntrospectResponse> introspect(@RequestBody @Valid IntrospectRequest request) {
+        var data = authenticationService.introspectToken(request);
+        return ApiResponse.<IntrospectResponse>builder()
+                .code(HttpStatus.OK.value())
+                .message("Token introspected successfully")
+                .data(data)
                 .build();
     }
 
