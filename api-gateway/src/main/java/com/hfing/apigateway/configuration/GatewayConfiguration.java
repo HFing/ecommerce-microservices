@@ -14,6 +14,7 @@ public class GatewayConfiguration {
                 .route("user-service", r -> r.path("/api/v1/users/**", "/api/v1/auth/**").uri("lb://USER-SERVICE"))
                 .route("product-service", r -> r.path("/api/v1/categories/**" ,"/api/v1/products/**").uri("lb://PRODUCT-SERVICE"))
                 .route("search-service", r -> r.path("/api/v1/search/**").uri("lb://SEARCH-SERVICE"))
+                .route("media-service", r -> r.path("/api/v1/s3/**").uri("lb://MEDIA-SERVICE"))
                 .build();
     }
 }
