@@ -1,6 +1,7 @@
 package com.hfing.mediaservice.service.impl;
 
 import com.hfing.mediaservice.dto.response.FileResponse;
+import com.hfing.mediaservice.dto.response.PreSignedResponse;
 import com.hfing.mediaservice.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +11,13 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
 import java.io.IOException;
-import java.util.Objects;
 import java.util.UUID;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+import java.time.Duration;
+
 
 @Service
 @RequiredArgsConstructor
@@ -27,33 +31,26 @@ public class S3StorageService implements StorageService {
     private String REGION;
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
     @Override
     public FileResponse uploadFile(MultipartFile file) throws IOException {
-        // Get original filename and validate
-        String originalFilename = Objects.requireNonNull(file.getOriginalFilename());
+        String originalFilename = file.getOriginalFilename();
 
-        // Generate unique file key with UUID and file extension
-        String key = UUID.randomUUID() + "_" + originalFilename
-                .substring(originalFilename.lastIndexOf("."));
+        String key = generateKey(originalFilename);
 
-        // Build PutObjectRequest with content type
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(BUCKET_NAME)
                 .key(key)
                 .contentType(file.getContentType())
                 .build();
 
-        // Create RequestBody from file input stream
         RequestBody requestBody = RequestBody.fromInputStream(file.getInputStream(), file.getSize());
 
-        // Upload file to S3
         s3Client.putObject(putObjectRequest, requestBody);
 
-        // Generate S3 URL
         String url = String.format("https://%s.s3.%s.amazonaws.com/%s", BUCKET_NAME, REGION, key);
 
-        // Return file response
         return FileResponse.builder()
                 .key(key)
                 .fileName(file.getOriginalFilename())
@@ -68,7 +65,37 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
-    public String generatePresignedUrl(String fileKey) {
-        return "";
+    public PreSignedResponse generatePresignedUrl(String fileName) {
+        // Generate unique key
+        String key = generateKey(fileName);
+
+        // Build PutObjectRequest
+        PutObjectRequest objectRequest = PutObjectRequest.builder()
+                .bucket(BUCKET_NAME)
+                .key(key)
+                .build();
+
+        // Build PutObjectPresignRequest with expiration time
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(10))
+                .putObjectRequest(objectRequest)
+                .build();
+
+        // Generate presigned URL
+        PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
+
+        String url = presignedRequest.url().toExternalForm();
+        return PreSignedResponse.builder()
+                .url(url)
+                .key(key)
+                .build();
+    }
+
+    private String generateKey(String originalFilename) {
+        String uuid = UUID.randomUUID().toString();
+
+        return originalFilename != null
+                ? uuid + "_" + originalFilename.substring(0, originalFilename.lastIndexOf("."))
+                : uuid;
     }
 }
