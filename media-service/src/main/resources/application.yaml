@@ -1,0 +1,22 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: media-service
+
+aws:
+  credentials:
+    access-key: ${ACCESS_KEY}
+    secret-key: ${SECRET_KEY}
+  region:
+    static: ${REGION}
+  s3:
+    bucket: ${BUCKET_NAME}
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
