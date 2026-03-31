@@ -4,6 +4,7 @@ import com.hfing.userservice.dto.request.CreateUserRequest;
 import com.hfing.userservice.dto.response.ApiResponse;
 import com.hfing.userservice.dto.response.CreateUserResponse;
 import com.hfing.userservice.dto.response.UserDetailResponse;
+import com.hfing.userservice.dto.response.UserProfileDto;
 import com.hfing.userservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,16 @@ public class UserController {
         return ApiResponse.<List<UserDetailResponse>>builder()
                 .code(HttpStatus.OK.value())
                 .message("Users retrieved successfully")
+                .data(data)
+                .build();
+    }
+
+    @GetMapping("/{id}")
+    ApiResponse<UserProfileDto> getUserById(@PathVariable String id) {
+        var data = userService.getProfileUser(id);
+        return ApiResponse.<UserProfileDto>builder()
+                .code(HttpStatus.OK.value())
+                .message("User info retrieved successfully")
                 .data(data)
                 .build();
     }

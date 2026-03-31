@@ -88,11 +88,25 @@ services:
     networks:
       - app_network
 
+  mongodb:
+    image: mongodb/mongodb-community-server:7.0-ubi8-slim
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app_network
+
 volumes:
   postgres_data:
   redis_data:
   elasticsearch_data:
   kafka_data:
+  mongodb_data:
 
 networks:
   app_network:

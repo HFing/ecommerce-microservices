@@ -4,6 +4,7 @@ import com.hfing.userservice.common.RoleType;
 import com.hfing.userservice.dto.request.CreateUserRequest;
 import com.hfing.userservice.dto.response.CreateUserResponse;
 import com.hfing.userservice.dto.response.UserDetailResponse;
+import com.hfing.userservice.dto.response.UserProfileDto;
 import com.hfing.userservice.entity.Role;
 import com.hfing.userservice.entity.User;
 import com.hfing.userservice.exception.ErrorCode;
@@ -51,7 +52,6 @@ public class UserServiceImpl implements UserService {
     public UserDetailResponse myInfo(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserServiceException(ErrorCode.USER_NOT_FOUND));
-
         return userMapper.toUserDetailResponse(user);
     }
 
@@ -63,6 +63,13 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .map(userMapper::toUserDetailResponse)
                 .toList();
+    }
+
+    @Override
+    public UserProfileDto getProfileUser(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserServiceException(ErrorCode.USER_NOT_FOUND));
+        return userMapper.toUserProfileDto(user);
     }
 
 }

@@ -3,6 +3,7 @@ package com.hfing.userservice.mapper;
 import com.hfing.userservice.dto.request.CreateUserRequest;
 import com.hfing.userservice.dto.response.CreateUserResponse;
 import com.hfing.userservice.dto.response.UserDetailResponse;
+import com.hfing.userservice.dto.response.UserProfileDto;
 import com.hfing.userservice.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -18,4 +19,7 @@ public interface UserMapper {
     CreateUserResponse toCreateUserResponse(User user);
 
     UserDetailResponse toUserDetailResponse(User user);
+
+    UserProfileDto toUserProfileDto(User user);
+
 }
