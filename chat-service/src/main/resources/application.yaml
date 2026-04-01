@@ -4,10 +4,8 @@ server:
 spring:
   application:
     name: chat-service
-
-  data:
-    mongodb:
-      connection-string: mongodb://root:root@localhost:27017/chat-service?authSource=admin
+  mongodb:
+    uri: mongodb://root:root@localhost:27017/chat_service?authSource=admin
 
 
 eureka:

@@ -23,15 +23,15 @@ public class ConversationController {
         return ApiResponse.<ConversationResponse>builder()
                 .code(HttpStatus.CREATED.value())
                 .data(conversationService.createConversation(request))
-                .message("Category created successfully")
+                .message("Conversation created successfully")
                 .build();
     }
 
     @GetMapping("/my-conversations")
     ApiResponse<List<ConversationResponse>> myConversations() {
         return ApiResponse.<List<ConversationResponse>>builder()
-                .code(HttpStatus.CREATED.value())
-                .message("Category created successfully")
+                .code(HttpStatus.OK.value())
+                .message("Conversation get successfully")
                 .data(conversationService.myConversations())
                 .build();
     }

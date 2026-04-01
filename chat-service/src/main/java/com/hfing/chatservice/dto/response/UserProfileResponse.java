@@ -5,9 +5,11 @@ import lombok.Builder;
 
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record UserProfileResponse(String id,
-        String userId,
+public record UserProfileResponse(
+        String id,
+        String email,
         String firstName,
         String lastName,
-        String avatar) {
+        String avatarKey
+) {
 }

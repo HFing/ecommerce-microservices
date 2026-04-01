@@ -60,10 +60,13 @@ public class ConversationServiceImpl implements ConversationService {
         if(Objects.isNull(userProfileResponse == null || Objects.isNull(participantInfoResponse == null )))
             throw new ChatServiceException(ErrorCode.USER_NOT_FOUND);
 
+        log.info("participantId: {}", participantInfoResponse.data());
         var userProfile = userProfileResponse.data();
         var participantProfile = participantInfoResponse.data();
 
         List<String> userIds = new ArrayList<>();
+
+
         userIds.add(userId);
         userIds.add(participantProfile.id());
 
@@ -75,13 +78,13 @@ public class ConversationServiceImpl implements ConversationService {
                         .userId(userProfile.id())
                         .lastName(userProfile.lastName())
                         .firstName(userProfile.firstName())
-                        .avatar(userProfile.avatar())
+                        .avatar(userProfile.avatarKey())
                         .build(),
                 ParticipantInfo.builder()
                         .userId(participantProfile.id())
                         .lastName(participantProfile.lastName())
                         .firstName(participantProfile.firstName())
-                        .avatar(participantProfile.avatar())
+                        .avatar(participantProfile.avatarKey())
                         .build()
         );
 
