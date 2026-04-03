@@ -19,6 +19,7 @@ public enum ErrorCode {
 
     UNAUTHORIZED(401, "Unauthorized", HttpStatus.UNAUTHORIZED),
     FORBIDDEN(403, "Forbidden", HttpStatus.FORBIDDEN),
+    CONVERSATION_NOT_FOUND(404, "Chat Conversation not found", HttpStatus.NOT_FOUND)
 
     ;
 

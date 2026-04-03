@@ -6,7 +6,9 @@ spring:
     name: chat-service
   mongodb:
     uri: mongodb://root:root@localhost:27017/chat_service?authSource=admin
-
+  data:
+    mongodb:
+      auto-index-creation: true
 
 eureka:
   instance:

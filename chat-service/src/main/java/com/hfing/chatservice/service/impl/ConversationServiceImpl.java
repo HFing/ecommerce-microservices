@@ -73,31 +73,37 @@ public class ConversationServiceImpl implements ConversationService {
         var sortedIds = userIds.stream().sorted().toList();
         String userIdHash = generateParticipantHash(sortedIds);
 
-        List<ParticipantInfo> participants = List.of(
-                ParticipantInfo.builder()
-                        .userId(userProfile.id())
-                        .lastName(userProfile.lastName())
-                        .firstName(userProfile.firstName())
-                        .avatar(userProfile.avatarKey())
-                        .build(),
-                ParticipantInfo.builder()
-                        .userId(participantProfile.id())
-                        .lastName(participantProfile.lastName())
-                        .firstName(participantProfile.firstName())
-                        .avatar(participantProfile.avatarKey())
-                        .build()
-        );
+        var conversation = conversationRepository.findByParticipantsHash(userIdHash)
+                .orElseGet(() ->{
 
-        // build conversation
-        Conversation conversation = Conversation.builder()
-                .type(request.type())
-                .participantsHash(userIdHash)
-                .participants(participants)
-                .createdAt(Instant.now())
-                .modifiedDate(Instant.now())
-                .build();
+            List<ParticipantInfo> participants = List.of(
+                    ParticipantInfo.builder()
+                            .userId(userProfile.id())
+                            .lastName(userProfile.lastName())
+                            .firstName(userProfile.firstName())
+                            .avatarKey(userProfile.avatarKey())
+                            .build(),
+                    ParticipantInfo.builder()
+                            .userId(participantProfile.id())
+                            .lastName(participantProfile.lastName())
+                            .firstName(participantProfile.firstName())
+                            .avatarKey(participantProfile.avatarKey())
+                            .build()
+            );
 
-        conversation = conversationRepository.save(conversation);
+            // build conversation
+            Conversation newconversation = Conversation.builder()
+                    .type(request.type())
+                    .participantsHash(userIdHash)
+                    .participants(participants)
+                    .createdAt(Instant.now())
+                    .modifiedDate(Instant.now())
+                    .build();
+
+            return newconversation = conversationRepository.save(newconversation);
+        });
+
+
 
 
         return toConversationResponse(conversation) ;
@@ -125,7 +131,7 @@ public class ConversationServiceImpl implements ConversationService {
                 .id(base.id())
                 .type(base.type())
                 .participantsHash(base.participantsHash())
-                .conversationAvatar(otherParticipant != null ? otherParticipant.getAvatar() : null)
+                .conversationAvatar(otherParticipant != null ? otherParticipant.getAvatarKey() : null)
                 .conversationName(otherParticipant != null
                         ? otherParticipant.getFirstName() + " " + otherParticipant.getLastName()
                         : null)

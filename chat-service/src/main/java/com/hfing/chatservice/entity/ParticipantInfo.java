@@ -13,6 +13,6 @@ public class ParticipantInfo {
     String userId;
     String firstName;
     String lastName;
-    String avatar;
+    String avatarKey;
 }
 
