@@ -1,5 +1,7 @@
 package com.hfing.chatservice.service.impl;
 
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOServer;
 import com.hfing.chatservice.dto.request.ChatMessageRequest;
 import com.hfing.chatservice.dto.response.ChatMessageResponse;
 import com.hfing.chatservice.entity.ChatMessage;
@@ -32,6 +34,7 @@ public class ChatMessageServiceImpl  implements ChatMessageService {
     private final ProfileClient profileClient;
     private final ChatMessageRepository chatMessageRepository;
     private final ConversationRepository conversationRepository;
+    private final SocketIOServer socketIOServer;
 
     @Override
     public List<ChatMessageResponse> getMessages(String conversationId) {
@@ -90,6 +93,13 @@ public class ChatMessageServiceImpl  implements ChatMessageService {
         chatMessage.setCreatedDate(Instant.now());
 
         chatMessage = chatMessageRepository.save(chatMessage);
+        String message = chatMessage.getMessage();
+        //publish socket event to clients
+        socketIOServer.getAllClients().forEach(client -> {
+            client.sendEvent("mesage",message);
+        });
+
+
 
 
         return ChatMessageResponse.builder()
