@@ -17,7 +17,7 @@ spring:
 
 elasticsearch:
   server-url: http://localhost:9200
-  api-key: czkyd0M1MEJWeElFTmlJQ1lHWU46cEtmVTY2WXFiLWItRkdSbU9zZ1JTQQ==
+  api-key: Z0otTWQ1MEJoeU5wbWhrOXRvQnY6bko2b1psT2RtaWo2X1I5VnlFYVNsUQ==
 
 
 eureka:
